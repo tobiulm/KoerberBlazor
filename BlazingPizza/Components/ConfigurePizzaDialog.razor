@@ -1,4 +1,5 @@
-﻿<div class="dialog-container">
+﻿@inject PizzaStoreContext Db
+<div class="dialog-container">
     <div class="dialog">
         <div class="dialog-title">
             <h2>
@@ -15,6 +16,33 @@
                 <span class="size-label">
                     @(Pizza.Size)cm (@(Pizza.GetFormattedTotalPrice())€)
                 </span>
+            </div>
+            <div>
+                <label>
+                    Extra Toppings:
+                </label>
+                @if(_toppings is null)
+                {
+                    <select class="custom-select" disbaled>
+                        <option>(loading...)</option>
+                    </select>
+                }
+                else if (Pizza.Toppings.Count >= 6)
+                {
+                    <div>(maximum reached)</div>
+                }
+                else
+                {
+                    <select class="custom-select">
+                        <option value="-1" disbaled selected>(select)</option>
+                        @for(var i = 0; i< _toppings.Count; i++)
+                        {
+                            <option value="@i">
+                                @_toppings[i].Name - (@(_toppings[i].GetFormattedPrice())€)
+                            </option>
+                        }
+                    </select>
+                }
             </div>
         </form>
         <div class="dialog-buttons">
@@ -34,4 +62,11 @@
 @code {
     [Parameter, EditorRequired]
     public Pizza Pizza { get; set; } = new();
+
+    List<Topping> _toppings = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _toppings = await Db.Toppings.OrderBy(t => t.Name).ToListAsync();
+    }
 }
