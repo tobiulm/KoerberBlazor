@@ -21,7 +21,7 @@
                 <label>
                     Extra Toppings:
                 </label>
-                @if(_toppings is null)
+                @if (_toppings is null)
                 {
                     <select class="custom-select" disbaled>
                         <option>(loading...)</option>
@@ -33,9 +33,9 @@
                 }
                 else
                 {
-                    <select class="custom-select">
+                    <select class="custom-select" @onchange="ToppingSelected">
                         <option value="-1" disbaled selected>(select)</option>
-                        @for(var i = 0; i< _toppings.Count; i++)
+                        @for (var i = 0; i < _toppings.Count; i++)
                         {
                             <option value="@i">
                                 @_toppings[i].Name - (@(_toppings[i].GetFormattedPrice())€)
@@ -45,16 +45,16 @@
                 }
             </div>
             <div class="toppings">
-                @foreach(var topping in Pizza.Toppings)
+                @foreach (var topping in Pizza.Toppings)
                 {
-                    if(topping?.Topping is not null)
+                    if (topping?.Topping is not null)
                     {
                         <div class="topping">
                             @topping?.Topping.Name
                             <span class="topping-price">
                                 @topping?.Topping.GetFormattedPrice()
                             </span>
-                            <button type="button" class="delete-topping">
+                            <button type="button" class="delete-topping" @onclick="(() => RemoveTopping(topping?.Topping))">
                                 x
                             </button>
                         </div>
@@ -63,13 +63,13 @@
             </div>
         </form>
         <div class="dialog-buttons">
-            <button class="btn btn-secondary me-auto">
+            <button class="btn btn-secondary me-auto" @onclick="OnCancel">
                 Cancel
             </button>
             <span class="me-center">
                 Price: <span class="price">@(Pizza.GetFormattedTotalPrice())</span>
             </span>
-            <button class="btn btn-success ms-auto">
+            <button class="btn btn-success ms-auto" @onclick="OnConfirm">
                 Order
             </button>
         </div>
@@ -82,8 +82,36 @@
 
     List<Topping> _toppings = null!;
 
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnConfirm { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         _toppings = await Db.Toppings.OrderBy(t => t.Name).ToListAsync();
+    }
+
+    private void AddTopping(Topping topping)
+    {
+        if (_toppings is null) return;
+        if (Pizza.Toppings.Find(pt => pt.Topping == topping) is null)
+        {
+            Pizza.Toppings.Add(new PizzaTopping() { Topping = topping });
+        }
+    }
+
+    private void RemoveTopping(Topping topping)
+    {
+        Pizza.Toppings.RemoveAll(pt => pt.Topping == topping);
+    }
+
+    private void ToppingSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse((string?)e.Value, out var index) && index >= 0)
+        {
+            AddTopping(_toppings[index]);
+        }
     }
 }
