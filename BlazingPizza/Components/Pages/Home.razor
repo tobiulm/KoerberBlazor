@@ -1,7 +1,18 @@
 ﻿@page "/"
 
+@inject PizzaStoreContext Db
+
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+@code{
+    List<PizzaSpecial>? _specials;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _specials = await Db.Specials.ToListAsync();
+    }
+}
