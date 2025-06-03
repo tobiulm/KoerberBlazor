@@ -44,6 +44,23 @@
                     </select>
                 }
             </div>
+            <div class="toppings">
+                @foreach(var topping in Pizza.Toppings)
+                {
+                    if(topping?.Topping is not null)
+                    {
+                        <div class="topping">
+                            @topping?.Topping.Name
+                            <span class="topping-price">
+                                @topping?.Topping.GetFormattedPrice()
+                            </span>
+                            <button type="button" class="delete-topping">
+                                x
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
         </form>
         <div class="dialog-buttons">
             <button class="btn btn-secondary me-auto">
