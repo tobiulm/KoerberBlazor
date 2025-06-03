@@ -1,5 +1,5 @@
 ﻿@page "/"
-
+@rendermode InteractiveServer
 @inject PizzaStoreContext Db
 
 <PageTitle>Blazing Pizza</PageTitle>
@@ -10,7 +10,7 @@
         {
             @foreach(var special in _specials)
             {
-                <li style="background-image: url('@special.ImageUrl')">
+                <li @onclick="@(() => ShowConfigurePizzaDialog(special))" style="background-image: url('@special.ImageUrl')">
                     <div class="pizza-info">
                         <span class="title">
                             @special.Name
@@ -30,12 +30,31 @@
     </ul>
 </div>
 
+@if(showingConfigureDialog)
+{
+    <ConfigurePizzaDialog Pizza="configuringPizza"></ConfigurePizzaDialog>
+}
 
 @code{
     List<PizzaSpecial>? _specials;
+    Pizza? configuringPizza;
+    bool showingConfigureDialog;
 
     protected override async Task OnInitializedAsync()
     {
         _specials = await Db.Specials.ToListAsync();
+    }
+
+    private void ShowConfigurePizzaDialog(PizzaSpecial special)
+    {
+        configuringPizza = new Pizza()
+        {
+            Special = special,
+            SpecialId = special.Id,
+            Size = Pizza.DefaultSize,
+            Toppings = new List<PizzaTopping>()
+        };
+
+        showingConfigureDialog = true;
     }
 }

@@ -1,0 +1,37 @@
+﻿<div class="dialog-container">
+    <div class="dialog">
+        <div class="dialog-title">
+            <h2>
+                @Pizza.Special?.Name
+            </h2>
+            @Pizza.Special?.Description
+        </div>
+        <form class="dialog-body">
+            <div>
+                <label>
+                    Size:
+                </label>
+                <input type="range" min="@Pizza.MinimumSize" max="@Pizza.MaximumSize" step="1" @bind="Pizza.Size" @bind:event="oninput" />
+                <span class="size-label">
+                    @(Pizza.Size)cm (@(Pizza.GetFormattedTotalPrice())€)
+                </span>
+            </div>
+        </form>
+        <div class="dialog-buttons">
+            <button class="btn btn-secondary me-auto">
+                Cancel
+            </button>
+            <span class="me-center">
+                Price: <span class="price">@(Pizza.GetFormattedTotalPrice())</span>
+            </span>
+            <button class="btn btn-success ms-auto">
+                Order
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Pizza Pizza { get; set; } = new();
+}
