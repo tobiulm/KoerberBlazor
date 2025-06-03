@@ -1,0 +1,34 @@
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime JsRuntime
+
+<div id="@_elementId" style="height: 100%; width: 100%;"></div>
+
+@code {
+    /// <summary>
+    /// Die eindeutige ID des HTML-Elements, das die Karte darstellt.
+    /// </summary>
+    readonly string _elementId = $"map-{Guid.NewGuid():D}";
+
+    /// <summary>
+    /// Der Zoomfaktor der Karte.
+    /// </summary>
+    [Parameter] public double Zoom { get; set; }
+
+    /// <summary>
+    /// Die Liste der Marker, die auf der Karte angezeigt werden sollen.
+    /// </summary>
+    [Parameter] public List<Marker> Markers { get; set; }
+
+    /// <summary>
+    /// Wird nach dem Rendern der Komponente aufgerufen und aktualisiert die Karte mit den Markern.
+    /// </summary>
+    /// <param name="firstRender">Gibt an, ob dies das erste Rendern der Komponente ist.</param>
+    /// <returns>Eine asynchrone Aufgabe.</returns>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JsRuntime.InvokeVoidAsync(
+            "deliveryMap.showOrUpdate",
+            _elementId,
+            Markers);
+    }
+}
