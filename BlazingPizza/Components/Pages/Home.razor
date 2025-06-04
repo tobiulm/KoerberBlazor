@@ -110,10 +110,11 @@
         if (OrderState.ConfiguringPizza is not null)
         {
             OrderState.Order.Pizzas.Add(OrderState.ConfiguringPizza);
+            OrderState.ShowingConfigureDialog = false;
             OrderState.ConfiguringPizza = null;
             await OrderState.SaveStateAsync();
         }
-        OrderState.ShowingConfigureDialog = false;
+       
     }
 
     private async Task RemoveConfiguredPizza(Pizza pizza)

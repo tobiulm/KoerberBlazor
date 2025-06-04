@@ -5,7 +5,12 @@ namespace BlazingPizza.Data
     {
         public async Task<IEnumerable<OrderWithStatus>> GetOrders()
         {
-            var orders = await db.GetOrdersAsync("");
+            //var orders = await db.GetOrdersAsync("");
+            var orders = await db.Orders
+                        .Include(o => o.DeliveryLocation)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Special)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
+                        .OrderByDescending(o => o.CreatedTime).ToListAsync();
             return orders.Select(OrderWithStatus.FromOrder).ToList();
         }
 

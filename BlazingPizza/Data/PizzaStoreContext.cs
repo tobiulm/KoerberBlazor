@@ -240,14 +240,16 @@ namespace BlazingPizza.Data
 
         private static readonly Func<PizzaStoreContext, string, Task<List<Order>>> GetOrders =
             EF.CompileAsyncQuery((PizzaStoreContext context, string userId) =>
-            context.Orders.Include(o => o.DeliveryLocation)
+            context.Orders.Where((o) => o.UserId == userId)
+                        .Include(o => o.DeliveryLocation)
                         .Include(o => o.Pizzas).ThenInclude(p => p.Special)
-                        .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping).ToList()
                         .OrderByDescending(o => o.CreatedTime).ToList());
 
         public async Task<List<Order>> GetOrdersAsync(string userId )
         {
-            return await GetOrders(this, userId);
+            var result =  await GetOrders(this, userId);
+            return result;
         }
 
     }
