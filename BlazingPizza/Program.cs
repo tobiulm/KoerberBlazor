@@ -14,6 +14,9 @@ builder.Services.AddDbContext<PizzaStoreContext>(options => {
     options.UseSqlite(connectionString);
 });
 
+// Add OrdersService to DI Container
+builder.Services.AddScoped<OrdersService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

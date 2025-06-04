@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 namespace BlazingPizza.Data
 {
     public class PizzaStoreContext(DbContextOptions<PizzaStoreContext> options): DbContext(options)
@@ -221,5 +222,33 @@ namespace BlazingPizza.Data
            );
 
         }
+
+
+        private static readonly Func<PizzaStoreContext, int, string, Task<Order>> GetOrder = 
+            EF.CompileAsyncQuery((PizzaStoreContext context, int orderId, string userID) =>
+            context.Orders.Where(o => o.OrderId == orderId)
+                .Include(o => o.DeliveryLocation)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Special)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
+                        .OrderByDescending(o => o.CreatedTime)
+                        .SingleOrDefault())!;
+
+        public async Task<Order> GetOrderAsync(int id, string userID)
+        {
+            return await GetOrder(this, id, userID);
+        }
+
+        private static readonly Func<PizzaStoreContext, string, Task<List<Order>>> GetOrders =
+            EF.CompileAsyncQuery((PizzaStoreContext context, string userId) =>
+            context.Orders.Include(o => o.DeliveryLocation)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Special)
+                        .Include(o => o.Pizzas).ThenInclude(p => p.Toppings).ThenInclude(t => t.Topping)
+                        .OrderByDescending(o => o.CreatedTime).ToList());
+
+        public async Task<List<Order>> GetOrdersAsync(string userId )
+        {
+            return await GetOrders(this, userId);
+        }
+
     }
 }

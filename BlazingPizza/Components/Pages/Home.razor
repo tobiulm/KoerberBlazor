@@ -1,6 +1,8 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject PizzaStoreContext Db
+@inject NavigationManager NavigationManager
+@inject OrdersService OrdersService
 
 <PageTitle>Blazing Pizza</PageTitle>
 
@@ -107,16 +109,7 @@
 
     private async Task PlaceOrder()
     {
-        order.DeliveryAddress = new Address()
-        {
-            City = "DemoOrt",    
-            Name = "Max Mustermann",
-            PostalCode = "12345",
-            Street = "Hauptstraße 1"
-        };
-        order.DeliveryLocation = new LatLong(52.473194004010715, 13.4030020867198);
-        Db.Orders.Add(order);
-        await Db.SaveChangesAsync();
-        order = new Order();
+        OrdersService.PlaceOrder(order);
+        NavigationManager.NavigateTo("/myorders");
     }
 }
