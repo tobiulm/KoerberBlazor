@@ -1,0 +1,97 @@
+﻿@page "/checkout"
+@rendermode InteractiveServer
+@inject OrderState OrderState
+@inject OrdersService OrdersService
+@inject NavigationManager NavManager
+@implements IDisposable
+
+<PageTitle>Blazing Pizza - Checkout</PageTitle>
+
+<div class="main">
+    <EditForm EditContext="_editContext" OnValidSubmit="PlaceOrder">
+        <DataAnnotationsValidator />
+        <AntiforgeryToken />
+        <div class="checkout-cols">
+            <div class="checkout-order-details">
+                <h4>
+                    Review order
+                </h4>
+                @if (_isConnected)
+                {
+                    <OrderReview Order="OrderState.Order" />
+                }
+                else
+                {
+                    <text>Loading...</text>
+                }
+            </div>
+            <div class="checkout-delivery-address">
+                <h4>
+                    Deliver to...
+                </h4>
+                <AddessEditor Address="Address" />
+            </div>
+        </div>
+        <button type="submit" class="checkout-button btn btn-warning" disabled="@_isSubmitting">
+            Place order
+        </button>
+    </EditForm>
+</div>
+
+@code {
+    private bool _isConnected;
+    private bool _isSubmitting;
+    public Address? Address { get; set; } = new();
+    private EditContext? _editContext;
+
+    protected override void OnInitialized()
+    {
+        OrderState.OnChange += StateHasChanged;
+        _editContext = new EditContext(Address);
+        _editContext.OnFieldChanged += HandleFieldChanged;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isConnected = true;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        if (_editContext is not null)
+        {
+            _isSubmitting = !_editContext.Validate();
+            StateHasChanged();
+        }
+    }
+
+    private async Task PlaceOrder()
+    {
+        OrderState.Order.DeliveryAddress = Address;
+        _isSubmitting = true;
+        try
+        {
+            var orderId = await OrdersService.PlaceOrder(OrderState.Order);
+            await OrderState.ResetOrder();
+            NavManager.NavigateTo($"myorders/{orderId}");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        OrderState.OnChange -= StateHasChanged;
+        if (_editContext is not null)
+        {
+            _editContext.OnFieldChanged -= HandleFieldChanged;
+        }
+    }
+
+}

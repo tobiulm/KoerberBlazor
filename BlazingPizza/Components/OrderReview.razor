@@ -1,0 +1,32 @@
+﻿@rendermode InteractiveServer
+
+@foreach(var pizza in Order!.Pizzas)
+{
+    <p>
+        <strong>
+            @pizza.Special.Name
+            @(pizza.Size)cm
+            (@pizza.GetFormattedTotalPrice()€)
+        </strong>
+    </p>
+    <ul>
+        @foreach(var topping in pizza.Toppings)
+        {
+            <li>
+                + @topping.Topping.Name (@topping.Topping.GetFormattedPrice()€)
+            </li>
+        }
+    </ul>
+}
+
+<p>
+    <strong>
+        Total price:
+        @Order.GetFormattedTotalPrice()€
+    </strong>
+</p>
+
+@code {
+    [Parameter]
+    public Order? Order { get; set; }
+}

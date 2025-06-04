@@ -114,7 +114,6 @@
             OrderState.ConfiguringPizza = null;
             await OrderState.SaveStateAsync();
         }
-       
     }
 
     private async Task RemoveConfiguredPizza(Pizza pizza)
@@ -124,8 +123,9 @@
 
     private async Task PlaceOrder()
     {
-        int newOrderId = await OrdersService.PlaceOrder(OrderState.Order);
-        NavigationManager.NavigateTo("/myorders");
+        // int newOrderId = await OrdersService.PlaceOrder(OrderState.Order);
+        // await OrderState.ResetOrder();
+        NavigationManager.NavigateTo("/checkout");
     }
 
     public void Dispose()

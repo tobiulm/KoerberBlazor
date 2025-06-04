@@ -1,0 +1,46 @@
+﻿@rendermode InteractiveServer
+<div class="form-field">
+    <label for="Address.Name">
+        Name:
+    </label>
+    <div>
+        <InputText @bind-Value="Address!.Name" class="form-control" id="Address.Name" />
+        <ValidationMessage For="@(() => Address.Name)" />
+    </div>
+</div>
+
+<div class="form-field">
+    <label for="Address.Street">
+        Street:
+    </label>
+    <div>
+        <InputText @bind-Value="Address!.Street" class="form-control" id="Address.Street" />
+        <ValidationMessage For="@(() => Address.Street)" />
+    </div>
+</div>
+
+<div class="form-field">
+    <label for="Address.PostalCode">
+        Postal Code:
+    </label>
+    <div>
+        <InputText @bind-Value="Address!.PostalCode" class="form-control" id="Address.PostalCode" />
+        <ValidationMessage For="@(() => Address.PostalCode)" />
+    </div>
+</div>
+
+<div class="form-field">
+    <label for="Address.City">
+        City:
+    </label>
+    <div>
+        <InputText @bind-Value="Address!.City" class="form-control" id="Address.City" />
+        <ValidationMessage For="@(() => Address.City)" />
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public Address? Address { get; set; }
+}
