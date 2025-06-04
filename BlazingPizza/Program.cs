@@ -1,3 +1,4 @@
+using BlazingPizza;
 using BlazingPizza.Components;
 using BlazingPizza.Data;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ builder.Services.AddDbContext<PizzaStoreContext>(options => {
 
 // Add OrdersService to DI Container
 builder.Services.AddScoped<OrdersService>();
+// Add OrderState to DI Container
+builder.Services.AddScoped<OrderState>();
 
 var app = builder.Build();
 

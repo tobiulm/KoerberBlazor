@@ -1,8 +1,10 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@implements IDisposable
 @inject PizzaStoreContext Db
 @inject NavigationManager NavigationManager
 @inject OrdersService OrdersService
+@inject OrderState OrderState
 
 <PageTitle>Blazing Pizza</PageTitle>
 
@@ -32,14 +34,14 @@
     </ul>
 </div>
 
-@if (order.Pizzas.Any())
+@if (OrderState.Order.Pizzas.Any())
 {
     <div class="sidebar">
         <div class="order-contents">
             <h2>
                 Your order
             </h2>
-            @foreach(var configuredPizza in order.Pizzas)
+            @foreach(var configuredPizza in OrderState.Order.Pizzas)
             {
                 <ConfiguredPizzaItem Pizza="configuredPizza" OnRemoved="@(() => RemoveConfiguredPizza(configuredPizza))" />
             }
@@ -47,9 +49,9 @@
         <div class="order-total">
             Total:
             <span class="total-price">
-                @order.GetFormattedTotalPrice()
+                @OrderState.Order.GetFormattedTotalPrice()
             </span>
-            <button class="btn btn-warning" disabled="@(order.Pizzas.Count==0)" @onclick="PlaceOrder" >
+            <button class="btn btn-warning" disabled="@(OrderState.Order.Pizzas.Count==0)" @onclick="PlaceOrder" >
                 Order
             </button>
         </div>
@@ -57,25 +59,37 @@
 }
 
 
-@if (showingConfigureDialog)
+@if (OrderState.ShowingConfigureDialog)
 {
-    <ConfigurePizzaDialog Pizza="configuringPizza" OnCancel="CancelConfigurePizzaDialog" OnConfirm="ConfirmPizzaConfigureDialog"></ConfigurePizzaDialog>
+    <ConfigurePizzaDialog Pizza="OrderState.ConfiguringPizza" OnCancel="CancelConfigurePizzaDialog" OnConfirm="ConfirmPizzaConfigureDialog"></ConfigurePizzaDialog>
 }
 
 @code {
     List<PizzaSpecial>? _specials;
-    Pizza? configuringPizza;
-    bool showingConfigureDialog;
-    Order order = new Order();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        OrderState.OnChange += StateHasChanged;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _specials = await Db.Specials.ToListAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await OrderState.LoadStateAsync();
+            StateHasChanged();
+        }
+    }
+
     private void ShowConfigurePizzaDialog(PizzaSpecial special)
     {
-        configuringPizza = new Pizza()
+        OrderState.ConfiguringPizza = new Pizza()
         {
             Special = special,
             SpecialId = special.Id,
@@ -83,33 +97,38 @@
             Toppings = new List<PizzaTopping>()
         };
 
-        showingConfigureDialog = true;
+        OrderState.ShowingConfigureDialog = true;
     }
 
     private void CancelConfigurePizzaDialog()
     {
-        configuringPizza = null;
-        showingConfigureDialog = false;
+        OrderState.ShowingConfigureDialog = false;
     }
 
-    private void ConfirmPizzaConfigureDialog()
+    private async Task ConfirmPizzaConfigureDialog()
     {
-        if (configuringPizza is not null)
+        if (OrderState.ConfiguringPizza is not null)
         {
-            order.Pizzas.Add(configuringPizza);
-            configuringPizza = null;
+            OrderState.Order.Pizzas.Add(OrderState.ConfiguringPizza);
+            OrderState.ConfiguringPizza = null;
+            await OrderState.SaveStateAsync();
         }
-        showingConfigureDialog = false;
+        OrderState.ShowingConfigureDialog = false;
     }
 
-    private void RemoveConfiguredPizza(Pizza pizza)
+    private async Task RemoveConfiguredPizza(Pizza pizza)
     {
-        order.Pizzas.Remove(pizza);
+        await OrderState.RemoveConfiguredPizzaItem(pizza);
     }
 
     private async Task PlaceOrder()
     {
-        OrdersService.PlaceOrder(order);
+        int newOrderId = await OrdersService.PlaceOrder(OrderState.Order);
         NavigationManager.NavigateTo("/myorders");
+    }
+
+    public void Dispose()
+    {
+        OrderState.OnChange -= StateHasChanged;
     }
 }
